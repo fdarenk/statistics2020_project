@@ -1,4 +1,4 @@
-gramm	marker_labialised	obl	bilabial_stop	nasal	labialised	fricative	vowel	speaker	year_of_birth	sex
+gramm	lab_in_marker	obl	bilabial_stop	nasal	labialized	approximant	vowel	speaker	year_of_birth	sex
 add	1		0	0	0	0	0	Майсарат	1978	f
 add	0		0	0	0	0	1	Майсарат	1978	f
 add	0		0	0	0	0	0	Майсарат	1978	f
