@@ -1,0 +1,187 @@
+---
+title: Anastasia Fedorenko, Aleksey Fedorenko. Distribution of allomorphs of comitative and additive in Rutul.
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Introduction
+
+Rutul is a minor language spoken in Dagestan, Russia. It belongs to Lezgic branch of Nakh-Daghestanian language family (Hammarström et al. 2019). 
+It has four cases not including spatial ones: ergative, absolutive, dative and comitative (Alekseev 1994). The case markers appear in a word form after the special oblique morpheme (1). There is a set of oblique suffixes occurring with different roots. The marker of comitative has two allomorphs: _-kan_ and _-kʷan_.
+
+(1) edemi-ji-kan  
+    man-OBL-COM  
+    'with a man'
+    
+The other marker in Rutul which has similar allomorphs is additive particle _=xa_ / _=xʷa_. This particle is also used in coordinated clauses. It is cliticized to the host (2).
+
+(2) χal=xa    lešu-r  
+    home=ADD  take.PFV-CVB  
+    ‘[he] also bought a house’
+    
+The aim of my reserch is to investigate which parameters influence the choice of the allomorphs of these two markers. I took the data from the corpus of Kina dialect of Rutul made by [research group from HSE](https://ling.hse.ru/rutul/). This corpus consists of 14 texts of 10 speakers. It includes 46 entries of comitative and 266 entries of additive. The corpus itself and other files concerning my work are in the [repository](https://github.com/fdarenk/statistics2020_project).
+
+I expect that the choice of labialized vs. non-labialized allomorph of comitative and additive may depend on the following features:  
+
+_Purely linguistic parameters._  
+- phonetic characteristics of the stem: 
+  if a stem includes labial consonants, and/or labialized consonants, and/or rounded vowels, it may cause the usage of _-kʷan_ instead of _-kan_ and _=xʷa_ instead of _=xa_;  
+- oblique morpheme:  
+  certain oblique markers could "prefer" one allomorph to another;
+  
+_Sociolinguistic parameters._  
+- idiolect:  
+  the presence of labialization may be the "choice" of a certain speaker;  
+- year of birth of an informant:    
+  it could show if one variant of the marker is replaced by another;  
+- gender of an informant:   
+  allomorphs can theoretically be distributed according to the gender of a speaker.  
+
+All these parameters are included in the Table 1.
+
+Table 1. Data.
+```{r data}
+dat <- read.csv('https://raw.githubusercontent.com/fdarenk/statistics2020_project/master/data_statistics.txt', sep = "\t")
+dat
+com <- dat[dat$gramm == "com",]
+add <- dat[dat$gramm == "add",]
+```
+
+## Phonetics
+First of all I consider dependence between labialization of the marker and phonetic charachteristics of the stem, namely, presence of bilabial stops _p_, _b_, _p'_, nasal _m_, approximant _w_, and vowels _u_, _o_, _y_. For this aim I use logistic regression with formula $$y = \beta_0 + \beta_1*d_1 + \beta_2*d_2 + \beta_3*d_3$$
+where $d_1$, $d_2$, $d_3$ are binary variables, showing a presence or an absence of a corresponding sound in a stem.
+
+Null hypothesis: there is no dependence between the choice of allomorph and the presence of bilabial stops  _p_, _b_, _p'_ / nasal _m_ / approximant _w_ / vowels _u_, _o_, _y_ in the stem.  
+Alternative hypothesis: there is dependence between the choice of allomorph and the presence of bilabial stops  _p_, _b_, _p'_ / nasal _m_ / approximant _w_ / vowels _u_, _o_, _y_ in the stem.
+
+The results for additive are:
+```{r phonadd}
+fit_add <- glm(add$lab_in_marker ~ add$bilabial_stop + add$nasal + add$labialized + add$approximant + add$vowel, data = add, family = binomial(link = 'logit'))
+summary(fit_add)
+```
+The only significant dependence (hereafter significance level is 5%) is the dependence between labialization in the marker and presence of approximant _w_. Interestingly, it is negative (Estimate -0.91969), which means that if _w_ occurs in the stem, it is more likely for the additive marker to be non-labialized.
+
+The results for comitative are:
+```{r phoncom}
+fit_com <- glm(com$lab_in_marker ~ com$bilabial_stop + com$nasal + com$labialized + com$approximant + com$vowel, data = com, family = binomial(link = 'logit'))
+summary(fit_com)
+```
+The number of occurrences of the marker in the corpus (46) is small, so, we should consider these results cautiously. However, the model shows that the two dependences are sighificant. Firstly, the presence of _m_ influences the choice of labialization in the suffix instead of non-labialization (Estimate 2.4194). Secondly, if a stem lacks all the sounds considered (Intercept), it has a negative effect (Estimate -1.1265), i.e. non-labialized allomorph will appear more frequently.
+
+## Oblique morpheme
+
+I apply chi-squared test to see if there is dependence between two categorical variables.
+
+Null hypothesis: there is no dependence between oblique morpheme and the choice of allomorph.  
+Alternative hypothesis: there is dependence between these two parameters.
+
+This test is applicable only to comitative as it is attached to the stem with oblique marker, while additive is enclitics which means it can follow any morphologically independent word form.
+
+Results:
+
+```{r chiobl}
+chisq.test(com$lab_in_marker, com$obl)
+```
+P-value is bigger than 5%, so, there is no dependence between oblique morpheme and labialization in the suffix. However, the test should be performed once again when more data will be provided.
+
+## Idiolect
+
+Chi-squared test is also applicable to see if the choice of allomorph depends on idiolect of a speaker.
+
+Results for additive:
+```{r chiinfadd}
+chisq.test(add$lab_in_marker, add$speaker)
+```
+P-value is less than 5%, so, the idiolect of a speaker influences the choice of additive.
+
+Results for comitative:
+```{r chiinfcom}
+chisq.test(com$lab_in_marker, com$speaker)
+```
+Similarly to additive, test on comitative shows that the idiolect of a speaker influences the choice of allomorph (p-value is less than 5%).
+
+## Sex and year of birth. Distribution.
+To continue with looking if year of birth and sex of an informant plays role, we should check the distribution of these parameters in the sample.
+```{r plotspeakers}
+library(ggplot2)
+library(dplyr)
+year <- dat$year_of_birth
+
+sex_n_yob <- select(dat, sex, year_of_birth)
+sex_n_yob <- filter(sex_n_yob, sex != "NA")
+
+ggplot(sex_n_yob, aes(year_of_birth, sex)) + geom_point()
+```
+
+The sample is small, but rather balanced.
+
+## Sex
+
+We can check whether the labialization in these markers is influenced by sex of an informant.
+
+Results for additive:
+```{r logsexadd}
+fit_add_inf <- glm(lab_in_marker ~ sex, data = add, family = binomial(link = 'logit'))
+summary(fit_add_inf)
+```
+If a speaker is masculine, it decreases chances that he will use _=xʷa_ instead of _=xa_. This result is significant, p-value is less than 5%.
+
+Results for comitative:
+```{r logsexcom}
+fit_com_inf <- glm(lab_in_marker ~ sex, data = com, family = binomial(link = 'logit'))
+summary(fit_com_inf)
+```
+Here, the significant result is that if a speaker is feminine (Intercept), she will not be likely to labialize comitative suffix.
+
+These results are very preliminary since the number of speakers is small.
+
+## Year of birth
+
+If we draw a function of dependence between year of birth of an informant and labialization in the marker of additive, we will see that the younger person is, the less they use labialized allomorph of additive:
+```{r yearaddplot}
+library(ggplot2)
+ggplot(add, aes(year_of_birth, lab_in_marker)) + geom_point() + stat_smooth(method="glm", se = FALSE)
+```
+
+This result is significant:
+```{r yearadd}
+fit_y_add <- glm(lab_in_marker ~ year_of_birth, data = add, family = binomial(link = 'logit'))
+summary(fit_y_add)
+```
+As for comitative, the picture is reversed: the number of labialized comitative usage grows.
+```{r yearcomplot}
+ggplot(com, aes(x=year_of_birth, lab_in_marker)) + geom_point() + stat_smooth(method="glm", se=FALSE)
+```
+
+However, this result is insignificant (although close to the border):
+```{r yearcom}
+fit_y_com <- glm(lab_in_marker ~ year_of_birth, data = com, family = binomial(link = 'logit'))
+summary(fit_y_com)
+```
+
+
+## Conclusion
+
+We have discussed comitative suffix _-kan_ / _-kʷan_ and additive particle _=xa_ / _=xʷa_. According to our data, the choice of labialized vs. non-labialized allomorph depends on different parameters for these two markers.  
+The only feature in common is that both markers depend on idiolect.  
+Additive is more likely to be **non-labialized** if:  
+1) the word to which it is cliticized contains _w_;  
+2) the speaker is masculine;  
+3) the speaker is young.  
+Comitative is expected to be **labialized** if it is attached to the stem including _m_, and **non-labialized** if:  
+1) there is no _p_, _p'_, _b_, _m_, _w_, _u_, _o_, _y_ in the stem;  
+2) the speaker is feminine.  
+The choice of allomorph of comitative does not depend on oblique morpheme and the age of an informant.
+
+
+#### References.
+
+Alekseev 1994 -- Alekseev, M. E. (1994). Rutul. In R. Smeets (Ed.), The indigenous languages of the Caucasus, volume 4: North East Caucasian Language Part 2 presenting the three Nakh languages and six minor Lezgian languages. (pp. 213-258). Delmar, New York: Caravan Books.  
+Hammarström et al. 2019 -- Hammarström, Harald & Forkel, Robert & Haspelmath, Martin. 2019. Glottolog 4.1. Jena: Max Planck Institute for the Science of Human History. (Available online at http://glottolog.org, Accessed on 2019-12-02.)
