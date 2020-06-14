@@ -204,9 +204,9 @@ def marker_found2(res, ending):
             if k_pos == -3:
                 if ending[-2] in 'wʷ':
                     raise otherK()
-                res['marker_labialized'] = 1
+                res['lab_in_marker'] = 1
             elif k_pos == -2:
-                res['marker_labialized'] = 0
+                res['lab_in_marker'] = 0
             else:
                 raise otherK()
             res['gramm'] = 'com'
@@ -216,9 +216,9 @@ def marker_found2(res, ending):
             if k_pos == -3:
                 if ending[-2:] in 'wʷ':
                     raise otherX()
-                res['marker_labialized'] = 1
+                res['lab_in_marker'] = 1
             elif k_pos == -2:
-                res['marker_labialized'] = 0
+                res['lab_in_marker'] = 0
             else:
                 raise otherX()
             res['gramm'] = 'add'
@@ -238,9 +238,9 @@ def marker_found(res, ending):
         if ending[-2:] != 'an':
             return False
         if len(ending) - k_pos == 4:
-            res['marker_labialised'] = 1
+            res['lab_in_marker'] = 1
         elif len(ending) - k_pos == 3:
-            res['marker_labialised'] = 0
+            res['lab_in_marker'] = 0
         else:
             return False
         res['gramm'] = 'com'
@@ -248,9 +248,9 @@ def marker_found(res, ending):
         if ending[-1] != 'a':
             return False
         if (len(ending) - x_pos) == 3:
-            res['marker_labialised'] = 1
+            res['lab_in_marker'] = 1
         elif (len(ending) - x_pos) == 2:
-            res['marker_labialised'] = 0
+            res['lab_in_marker'] = 0
         else:
             return False
         res['gramm'] = 'add'
@@ -262,8 +262,8 @@ def marker_found(res, ending):
 def phon(res, base):
     res['bilabial_stop'] = 1 if (('b' in base) or ('p' in base)) else 0
     res['nasal'] = 1 if ('m' in base) else 0
-    res['labialised'] = 1 if ('ʷ' in base) else 0
-    res['fricative'] = 1 if ('v' in base) else 0
+    res['labialized'] = 1 if ('ʷ' in base) else 0
+    res['approximant'] = 1 if ('v' in base) else 0
     look_on_w(res, base)
     res['vowel'] = 1 if (('u' in base) or ('ü' in base) or ('o' in base)) else 0
 
@@ -275,18 +275,18 @@ def look_on_w(res, base):
         if w_pos == -1:
             continue
         elif w_pos == 0:
-            res['fricative'] = 1
+            res['approximant'] = 1
         else:
             if morph[w_pos - 1] in {'k', 'x', 'ˁ', 'ʁ', 'g', 'ɢ', "'", 'q'}:
-                res['labialised'] = 1
+                res['labialized'] = 1
             else:
-                res['fricative'] = 1
+                res['approximant'] = 1
 
 
 def write_res(tokens):
     fh = open('data_statistics.txt', 'w', encoding='utf8')
-    col_names = ('gramm', 'marker_labialised', 'obl',
-                 'bilabial_stop', 'nasal', 'labialised', 'fricative', 'vowel',
+    col_names = ('gramm', 'lab_in_marker', 'obl',
+                 'bilabial_stop', 'nasal', 'labialized', 'approximant', 'vowel',
                  'speaker', 'year_of_birth', 'sex')
     data_rows = []
     for token in tokens:
